@@ -17,7 +17,7 @@ class JDBCUtil {
             Class.forName(driver);
             conn = DriverManager.getConnection(url, user, password);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("连接数据库异常" + e.getMessage());
         }
         return conn;
     }
@@ -34,7 +34,7 @@ class JDBCUtil {
                 conn.close();
             }
         } catch (Exception e) {
-            System.out.println("关闭连接Exception:"+e.getStackTrace());
+            System.out.println("关闭连接Exception:" + e.getStackTrace());
         }
     }
 }
