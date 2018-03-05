@@ -281,7 +281,10 @@ public class App extends JFrame implements ActionListener {
                 Cell cell = row.getCell(columnAt - 1);
                 String result = cell.getStringCellValue();
                 if ("".equals(result)) continue;
-                for (int j = 2; j <= 4; j++) {
+                int resultLen=result.length();
+                if(resultLen<2) continue;
+                else if (resultLen > 4) resultLen = 4;
+                for (int j = 2; j <= resultLen; j++) {
                     String city = result.substring(0, j);
                     jTextAreaInfo.append("[" + Utils.getCurrentTimeStr() + "]city:" + city + "\n");
                     jTextAreaInfo.paintImmediately(jTextAreaInfo.getBounds());
