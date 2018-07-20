@@ -23,10 +23,8 @@ import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 通过城市找到所属省份
@@ -52,7 +50,7 @@ public class App extends JFrame implements ActionListener {
 
     public App() {
         this.setTitle("App");
-        this.setSize(510, 430);
+        this.setSize(475, 380);
         this.setLocation(400, 200);
         this.setResizable(false);
 
@@ -135,7 +133,7 @@ public class App extends JFrame implements ActionListener {
         jTextAreaInfo.append("就绪...\n");
 
         scrollPane = new JScrollPane(jTextAreaInfo, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setBounds(1, 200, 450, 140);
+        scrollPane.setBounds(5, 200, 450, 140);
         jPanel.add(scrollPane);
         scrollBar = scrollPane.getVerticalScrollBar();
 
@@ -316,6 +314,9 @@ public class App extends JFrame implements ActionListener {
         StringBuffer provinces = new StringBuffer("");
         String sql = "select city_name,city_type, province_name from citys where city_name_abbr =?";
         Connection conn = JDBCUtil.getConnection();
+        if (Objects.isNull(conn)) {
+            jTextAreaInfo.append("数据连接异常，连接返回Null.\n");
+        }
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {

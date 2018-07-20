@@ -10,7 +10,7 @@ class JDBCUtil {
     static Connection getConnection() {
         Connection conn = null;
         String driver = "com.mysql.jdbc.Driver";
-        String url = "jdbc:mysql://localhost:3306/citys";
+        String url = "jdbc:mysql://localhost:3306/citys?useUnicode=true&characterEncoding=utf-8";
         String user = "root";
         String password = "admin";
         try {
