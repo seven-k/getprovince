@@ -1,11 +1,16 @@
 package main;
 
+
+import org.apache.log4j.Logger;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
 class JDBCUtil {
+
+    private static Logger logger = Logger.getLogger(JDBCUtil.class.getName());
 
     static Connection getConnection() {
         Connection conn = null;
@@ -17,7 +22,23 @@ class JDBCUtil {
             Class.forName(driver);
             conn = DriverManager.getConnection(url, user, password);
         } catch (Exception e) {
-            System.out.println("连接数据库异常" + e.getMessage());
+            e.printStackTrace();
+            logger.error("连接数据库异常" + e.getMessage());
+        }
+        return conn;
+    }
+
+    static Connection getAccessConnection() {
+        Connection conn = null;
+        String driver = "net.ucanaccess.jdbc.UcanaccessDriver";
+        String url = "jdbc:ucanaccess://citys.mdb";
+        String user = "";
+        String password = "";
+        try {
+            Class.forName(driver);
+            conn = DriverManager.getConnection(url, user, password);
+        } catch (Exception e) {
+            logger.error("连接数据库异常" + e.getMessage());
         }
         return conn;
     }
@@ -34,7 +55,7 @@ class JDBCUtil {
                 conn.close();
             }
         } catch (Exception e) {
-            System.out.println("关闭连接Exception:" + e.getStackTrace());
+            logger.error("关闭连接Exception:" + e.getStackTrace());
         }
     }
 }

@@ -1,11 +1,12 @@
 package main;
 
 
+import org.apache.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.formula.functions.T;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jb2011.lnf.beautyeye.BeautyEyeLNFHelper;
 import org.jb2011.lnf.beautyeye.ch3_button.BEButtonUI;
@@ -14,6 +15,8 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -31,6 +34,8 @@ import java.util.List;
  */
 public class App extends JFrame implements ActionListener {
 
+    private Logger logger = Logger.getLogger(App.class.getName());
+
     private JPanel jPanel;
     private JLabel jLabelPage;
     private JLabel jLabelCol;
@@ -38,6 +43,7 @@ public class App extends JFrame implements ActionListener {
     private JTextField jTextFieldPage;
     private JTextField jTextFieldCol;
     private JTextField jTextFieldFile;
+    private JTextField jTextFieldInfo;
     private JButton jButtonSelect;
     private JButton jButtonStart;
     private JButton jButtonAdd1;   //+
@@ -50,7 +56,7 @@ public class App extends JFrame implements ActionListener {
 
     public App() {
         this.setTitle("App");
-        this.setSize(475, 380);
+        this.setSize(520, 460);
         this.setLocation(400, 200);
         this.setResizable(false);
 
@@ -132,6 +138,14 @@ public class App extends JFrame implements ActionListener {
         jTextAreaInfo.setLineWrap(true); //自动换行
         jTextAreaInfo.append("就绪...\n");
 
+        jTextFieldInfo = new JTextField();
+        jTextFieldInfo.setBounds(10, 340, 440, 30);
+        jTextFieldInfo.setForeground(Color.RED);
+        jTextFieldInfo.setText("就绪...");
+        jTextFieldInfo.setEditable(false);
+        jTextFieldInfo.setFont(myFont(16));
+        jPanel.add(jTextFieldInfo);
+
         scrollPane = new JScrollPane(jTextAreaInfo, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBounds(5, 200, 450, 140);
         jPanel.add(scrollPane);
@@ -159,25 +173,32 @@ public class App extends JFrame implements ActionListener {
             String path = selectFile();
             jTextFieldFile.setText(path);
             jTextFieldFile.setCaretPosition(0);
+            jTextFieldInfo.setText("---选择Excel文件---");
         } else if (e.getSource() == jButtonAdd1) {
             controlValue(jTextFieldPage, '+');
+            jTextFieldInfo.setText("---选择数据所在页---");
         } else if (e.getSource() == jButtonAdd2) {
             controlValue(jTextFieldCol, '+');
+            jTextFieldInfo.setText("---选择数据所在列---");
         } else if (e.getSource() == jButtonMinus1) {
             controlValue(jTextFieldPage, '-');
+            jTextFieldInfo.setText("---选择数据所在页---");
         } else if (e.getSource() == jButtonMinus2) {
             controlValue(jTextFieldCol, '-');
+            jTextFieldInfo.setText("---选择数据所在列---");
         } else if (e.getSource() == jButtonStart) {
+            jTextAreaInfo.setText("");
+            jTextFieldInfo.setText("---执行---");
             String filePath = jTextFieldFile.getText();
             int sheetAt = Integer.valueOf(jTextFieldPage.getText());
             int columnAt = Integer.valueOf(jTextFieldCol.getText());
-            Runnable runReadExcel = () -> {
-                readExcel(filePath, sheetAt, columnAt);
-            };
-            Thread thread = new Thread(runReadExcel);
-            Runnable runnable = this::printTest;
-            Thread thread1 = new Thread(runnable);
-            thread.start();
+            //Runnable runReadExcel = () -> {
+            readExcel(filePath, sheetAt, columnAt);
+            //};
+            //Thread thread = new Thread(runReadExcel);
+            //Runnable runnable = this::printTest;
+            //Thread thread1 = new Thread(runnable);
+            //thread.start();
             //thread1.start();
         }
     }
@@ -220,6 +241,7 @@ public class App extends JFrame implements ActionListener {
         int result = fileChooser.showOpenDialog(this);
         if (JFileChooser.APPROVE_OPTION == result) {
             path = fileChooser.getSelectedFile().getPath();
+            jTextAreaInfo.setText("");
             jTextAreaInfo.append("path:" + path + "\n");
         }
         return path;
@@ -234,14 +256,13 @@ public class App extends JFrame implements ActionListener {
         int i = 0;
         while (true) {
             i++;
-            System.out.println("Num:" + i);
+            logger.info("Num:" + i);
             if (i == 12800) break;
         }
     }
 
     /**
      * 设置字体
-     *
      * @param fontSize 字体大小
      * @return Font
      */
@@ -275,23 +296,30 @@ public class App extends JFrame implements ActionListener {
             int lastRowNum = sheet.getLastRowNum();
             for (int i = 0; i <= lastRowNum; i++) {
                 Row row = sheet.getRow(i);
-                System.out.println("current row:" + i);
+                //logger.info("current row:" + i);
                 Cell cell = row.getCell(columnAt - 1);
                 String result = cell.getStringCellValue();
                 if ("".equals(result)) continue;
-                int resultLen=result.length();
-                if(resultLen<2) continue;
+                int resultLen = result.length();
+                if (resultLen < 2) continue;
                 else if (resultLen > 4) resultLen = 4;
+                String province = "";
+                Cell cellP = row.createCell(columnAt);
                 for (int j = 2; j <= resultLen; j++) {
                     String city = result.substring(0, j);
                     jTextAreaInfo.append("[" + Utils.getCurrentTimeStr() + "]city:" + city + "\n");
                     jTextAreaInfo.paintImmediately(jTextAreaInfo.getBounds());
-                    String province = queryProvince(city);
+                    province = queryProvince(city);
                     if (province.length() > 0) {
-                        Cell cellP = row.createCell(columnAt);
                         cellP.setCellValue(province);
                         break;
                     }
+                }
+                if ("".equals(province)) {
+                    cellP.setCellStyle(cellStyle(wb, HSSFColor.RED.index));
+                } else if (province.split(";").length > 1) {
+                    cellP.setCellStyle(cellStyle(wb, HSSFColor.YELLOW.index));
+
                 }
                 scrollBar.setValue(scrollBar.getMaximum());
             }
@@ -300,7 +328,8 @@ public class App extends JFrame implements ActionListener {
             outputStream.close();
             wb.close();
             fileInputStream.close();
-            jTextAreaInfo.append("[" + Utils.getCurrentTimeStr() + "]完成...");
+            jTextAreaInfo.append("[" + Utils.getCurrentTimeStr() + "]完成...\n");
+            jTextFieldInfo.setText("---完成---");
             jTextAreaInfo.setCaretPosition(jTextAreaInfo.getLineCount());
 
 
@@ -309,13 +338,24 @@ public class App extends JFrame implements ActionListener {
         }
     }
 
+    private CellStyle cellStyle(Workbook wb, Short color) {
+        CellStyle style = wb.createCellStyle();
+        //颜色
+        style.setFillForegroundColor(color);
+        style.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
+        style.setFillBackgroundColor(color);
+        return style;
+    }
+
+
     private String queryProvince(String city) {
         //select city_name,city_code, province_name from citys where city_name_abbr ='朝阳'
         StringBuffer provinces = new StringBuffer("");
-        String sql = "select city_name,city_type, province_name from citys where city_name_abbr =?";
-        Connection conn = JDBCUtil.getConnection();
+        String sql = "select city_name,city_type, province_name from citys where is_deleted=0 and city_name_abbr =?";
+        Connection conn = JDBCUtil.getAccessConnection();
         if (Objects.isNull(conn)) {
             jTextAreaInfo.append("数据连接异常，连接返回Null.\n");
+            return null;
         }
         PreparedStatement statement = null;
         ResultSet resultSet = null;
@@ -336,7 +376,8 @@ public class App extends JFrame implements ActionListener {
                 }
             }
             if (listCity.size() > 0) {
-                listCity.stream().forEach(c -> provinces.append(c.getCityName() + "[" + c.getCityType() + "]" + c.getProvinceName() + ";"));
+                //listCity.stream().forEach(c -> provinces.append(c.getCityName() + "[" + c.getCityType() + "]" + c.getProvinceName() + ";"));
+                listCity.stream().forEach(c -> provinces.append(c.getProvinceName() + ";"));
             }
         } catch (Exception e1) {
             jTextAreaInfo.append("Exception:" + e1.getMessage() + "\n");
@@ -348,7 +389,6 @@ public class App extends JFrame implements ActionListener {
 
 
     public static void main(String[] args) {
-
         try {
             BeautyEyeLNFHelper.launchBeautyEyeLNF();
             UIManager.put("RootPane.setupButtonVisible", false);
